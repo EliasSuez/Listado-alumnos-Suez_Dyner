@@ -1,4 +1,4 @@
-import ".env";
+import dotenv from "dotenv";
 
 const config = {
   host: process.env.DB_HOST ?? "",

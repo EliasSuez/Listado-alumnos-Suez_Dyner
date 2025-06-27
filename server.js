@@ -32,12 +32,12 @@ async function startServer() {
         const idBuscado = req.params.id
         if(isNaN(idBuscado))
         {
-            return res.status(400).json({error: "El id debe ser numerico"})
+            return res.status(StatusCodes.BAD_REQUEST).json({error: "El id debe ser numerico"})
         }
         try {
             const result = await cliente.query("SELECT * FROM alumnos WHERE id = $1", [idBuscado]);
             if(result.rows.length === 0 ){
-                return res.status(404).json({error : "Alumno no enontrado"})
+                return res.status(StatusCodes.NOT_FOUND).json({error : "Alumno no enontrado"})
             }
             else{
                 return res.status(StatusCodes.OK).json(result.rows);
@@ -45,7 +45,7 @@ async function startServer() {
         }
         catch (error){
             console.error(error)
-            return res.status(500).json({error: error.message})
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error: error.message})
         }
     });
 
@@ -53,16 +53,16 @@ async function startServer() {
         const { nombre, apellido, id_curso, fecha_nacimiento, hace_deportes } = req.body;
       
         if (!nombre || nombre.length < 3) {
-          return res.status(400).json({ error: "El nombre es obligatorio y debe tener al menos 3 caracteres" });
+          return res.status(StatusCodes.BAD_REQUEST).json({ error: "El nombre es obligatorio y debe tener al menos 3 caracteres" });
         }
         if (!apellido || apellido.length < 3) {
-          return res.status(400).json({ error: "El apellido es obligatorio y debe tener al menos 3 caracteres" });
+          return res.status(StatusCodes.BAD_REQUEST).json({ error: "El apellido es obligatorio y debe tener al menos 3 caracteres" });
         }
         if (!id_curso || isNaN(id_curso)) {
-          return res.status(400).json({ error: "El id_curso debe ser un número válido" });
+          return res.status(StatusCodes.BAD_REQUEST).json({ error: "El id_curso debe ser un número válido" });
         }
         if (!fecha_nacimiento) {
-          return res.status(400).json({ error: "La fecha de nacimiento es obligatoria" });
+          return res.status(StatusCodes.BAD_REQUEST).json({ error: "La fecha de nacimiento es obligatoria" });
         }
       
         try {
@@ -71,9 +71,9 @@ async function startServer() {
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [nombre, apellido, id_curso, fecha_nacimiento, hace_deportes]
           );
-          return res.status(201).json(result.rows[0]);
+          return res.status(StatusCodes.CREATED).json(result.rows[0]);
         } catch (error) {
-          return res.status(500).json({ error: error.message });
+          return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
     });
       
@@ -82,26 +82,26 @@ async function startServer() {
         const { id, nombre, apellido, id_curso, fecha_nacimiento, hace_deportes } = req.body;
         console.log("PUT /api/alumnos request received", req.body);
         if (!id || isNaN(id)) {
-            return res.status(400).json({ error: "El id es obligatorio y debe ser un número válido" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "El id es obligatorio y debe ser un número válido" });
         }
         if (!nombre || nombre.length < 3) {
-            return res.status(400).json({ error: "El nombre es obligatorio y debe tener al menos 3 caracteres" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "El nombre es obligatorio y debe tener al menos 3 caracteres" });
         }
         if (!apellido || apellido.length < 3) {
-            return res.status(400).json({ error: "El apellido es obligatorio y debe tener al menos 3 caracteres" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "El apellido es obligatorio y debe tener al menos 3 caracteres" });
         }
         if (!id_curso || isNaN(id_curso)) {
-            return res.status(400).json({ error: "El id_curso debe ser un número válido" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "El id_curso debe ser un número válido" });
         }
         if (!fecha_nacimiento) {
-            return res.status(400).json({ error: "La fecha de nacimiento es obligatoria" });
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "La fecha de nacimiento es obligatoria" });
         }
         
         try {
             const check = await cliente.query("SELECT * FROM alumnos WHERE id = $1", [id]);
         
             if (check.rows.length === 0) {
-            return res.status(404).json({ error: "Alumno no encontrado" });
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Alumno no encontrado" });
             }
         
             const result = await cliente.query(
@@ -112,10 +112,10 @@ async function startServer() {
             [nombre, apellido, id_curso, fecha_nacimiento, hace_deportes, id]
             );
         
-            return res.status(201).json(result.rows[0]);
+            return res.status(StatusCodes.CREATED).json(result.rows[0]);
         } catch (error) {
             console.error("Error actualizando alumno:", error);
-            return res.status(500).json({ error: error.message });
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
         });
             
@@ -123,22 +123,22 @@ async function startServer() {
         const id = req.params.id;
     
         if (isNaN(id)) {
-        return res.status(400).json({ error: "El id debe ser un número válido" });
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: "El id debe ser un número válido" });
         }
     
         try {
         const check = await cliente.query("SELECT * FROM alumnos WHERE id = $1", [id]);
     
         if (check.rows.length === 0) {
-            return res.status(404).json({ error: "Alumno no encontrado" });
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Alumno no encontrado" });
         }
 
         await cliente.query("DELETE FROM alumnos WHERE id = $1", [id]);
     
-        return res.status(200).json({ message: "Alumno eliminado correctamente" });
+        return res.status(StatusCodes.OK).json({ message: "Alumno eliminado correctamente" });
         } catch (error) {
         console.error("Error eliminando alumno:", error);
-        return res.status(500).json({ error: error.message });
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
         }
       });
       
