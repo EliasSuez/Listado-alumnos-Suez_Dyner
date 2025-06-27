@@ -3,9 +3,11 @@ import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import config from "./src/configs/db-configs.js";
 import pkg from "pg";
+import alumnosRouter from "./src/routes/alumnos.js";
 
-const { Client } = pkg;
-const cliente = new Client(config);
+
+const { Pool } = pkg;
+const pool = new Pool(config);
 
 const app = express();
 const port = 8081;
@@ -13,14 +15,15 @@ const port = 8081;
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/alumnos", alumnosRouter);
+
 async function startServer() {
   try {
-    await cliente.connect();
     console.log("Conectado a la base de datos");
 
     app.get("/api/alumnos", async (req, res) => {
       try {
-        const result = await cliente.query("SELECT * FROM alumnos");
+        const result = await pool.query("SELECT * FROM alumnos");
         return res.status(StatusCodes.OK).json(result.rows);
       } catch (error) {
         console.error(error);
@@ -35,7 +38,7 @@ async function startServer() {
             return res.status(StatusCodes.BAD_REQUEST).json({error: "El id debe ser numerico"})
         }
         try {
-            const result = await cliente.query("SELECT * FROM alumnos WHERE id = $1", [idBuscado]);
+            const result = await pool.query("SELECT * FROM alumnos WHERE id = $1", [idBuscado]);
             if(result.rows.length === 0 ){
                 return res.status(StatusCodes.NOT_FOUND).json({error : "Alumno no enontrado"})
             }
@@ -66,7 +69,7 @@ async function startServer() {
         }
       
         try {
-          const result = await cliente.query(
+          const result = await pool.query(
             `INSERT INTO alumnos (nombre, apellido, id_curso, fecha_nacimiento, hace_deportes)
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [nombre, apellido, id_curso, fecha_nacimiento, hace_deportes]
@@ -98,13 +101,13 @@ async function startServer() {
         }
         
         try {
-            const check = await cliente.query("SELECT * FROM alumnos WHERE id = $1", [id]);
+            const check = await pool.query("SELECT * FROM alumnos WHERE id = $1", [id]);
         
             if (check.rows.length === 0) {
             return res.status(StatusCodes.NOT_FOUND).json({ error: "Alumno no encontrado" });
             }
         
-            const result = await cliente.query(
+            const result = await pool.query(
             `UPDATE alumnos
                 SET nombre = $1, apellido = $2, id_curso = $3, fecha_nacimiento = $4, hace_deportes = $5
                 WHERE id = $6
@@ -127,13 +130,13 @@ async function startServer() {
         }
     
         try {
-        const check = await cliente.query("SELECT * FROM alumnos WHERE id = $1", [id]);
+        const check = await pool.query("SELECT * FROM alumnos WHERE id = $1", [id]);
     
         if (check.rows.length === 0) {
             return res.status(StatusCodes.NOT_FOUND).json({ error: "Alumno no encontrado" });
         }
 
-        await cliente.query("DELETE FROM alumnos WHERE id = $1", [id]);
+        await pool.query("DELETE FROM alumnos WHERE id = $1", [id]);
     
         return res.status(StatusCodes.OK).json({ message: "Alumno eliminado correctamente" });
         } catch (error) {
