@@ -21,7 +21,7 @@ async function startServer() {
   try {
     console.log("Conectado a la base de datos");
 
-    app.get("/api/alumnos", async (req, res) => {
+    alumnosRouter.get("/", async (req, res) => {
       try {
         const result = await pool.query("SELECT * FROM alumnos");
         return res.status(StatusCodes.OK).json(result.rows);
@@ -31,7 +31,7 @@ async function startServer() {
       }
     });
 
-    app.get("/api/alumnos/:id", async (req, res) => {
+    alumnosRouter.get("/:id", async (req, res) => {
         const idBuscado = req.params.id
         if(isNaN(idBuscado))
         {
